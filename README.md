@@ -8,7 +8,11 @@ Collection of experiments in Single Image Super Resolution
 
 [Japanese Woodblock Print Search](https://ukiyo-e.org/)
 
-## Implemented Features
+## Implemented Models
+
+'default' [Enhanced Deep Residual Networks](https://openaccess.thecvf.com/content_cvpr_2017_workshops/w12/papers/Lim_Enhanced_Deep_Residual_CVPR_2017_paper.pdf)
+
+'--srrn' [Super Resolution Residual Network](https://arxiv.org/pdf/1609.04802)
 
 ## Usage
 
@@ -24,6 +28,8 @@ and specify the directory with pretrained weights and input (low resolution) ima
 `--seed` - manual random seed
 
 `--batchsize` - batch size
+
+'--lr' - learning rate for training
 
 ### Dataset Flags
 
