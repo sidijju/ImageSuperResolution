@@ -155,7 +155,7 @@ class SuperResolutionResidualNetwork(nn.Module):
             nn.BatchNorm2d(nf)
         )
 
-        self.upscale4x = nn.Sequential(
+        self.upsample4x = nn.Sequential(
             nn.Conv2d(nf, nf * 4, 3, 1, 1, bias=False),
             nn.PixelShuffle(2),
             nn.LeakyReLU(0.2, inplace=True),
@@ -172,7 +172,7 @@ class SuperResolutionResidualNetwork(nn.Module):
         x = self.residual(x)
         x = self.mid_conv(x)
         x += res
-        x = self.upscale4x(x)
+        x = self.upsample4x(x)
         x = self.output_conv(x)
         return x
     
