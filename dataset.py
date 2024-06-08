@@ -48,7 +48,7 @@ class JapArtDataset(Dataset):
             v2.Pad(pad, fill=1),
         ])
         img = transform(img)
-        img = torch.clamp(img, 0, 1)
+        img = img * 2 - 1 # scale hr between -1 and 1
 
         lr_img = v2.Resize(self.dim)(img)
         lr_img = torch.clamp(lr_img, 0, 1)
