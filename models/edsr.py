@@ -8,9 +8,9 @@ from datetime import datetime
 from utils import *
 from dataset import TestDataset
 
-##### SRResNet #####
+##### EDSR #####
 
-class SRResNet:
+class EDSR:
 
     def __init__(self, 
                 args,
@@ -26,7 +26,7 @@ class SRResNet:
         self.channel_size = args.channel_size
 
         if not self.args.test:
-            self.run_dir = "train/srresnet-" + datetime.now().strftime("%Y-%m-%d(%H:%M:%S)" + "/")
+            self.run_dir = "train/edsr-" + datetime.now().strftime("%Y-%m-%d(%H:%M:%S)" + "/")
             self.progress_dir = self.run_dir + "progress/"
             make_dir(self.run_dir)
             make_dir(self.progress_dir)
@@ -36,16 +36,16 @@ class SRResNet:
         if not self.train_loader:
             return
         
-        model = SRResNet(self.args)
+        model = EnhancedDeepResidualNetwork(self.args)
         model.apply(weights_init)
         model.to(self.args.device)
-        optimizer = optim.Adam(model.parameters(), lr=self.args.lr, betas=(0.5, 0.999))
-
-        mse = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=self.args.lr, betas=(0.9, 0.999))
 
         sample_lr, sample_hr = next(iter(self.val_loader))
         plot_batch(sample_lr, self.progress_dir + f"x:0")
         plot_batch(sample_hr, self.progress_dir + f"y:0")
+
+        l1 = nn.L1Loss()
 
         train_losses = []
         val_losses = []
@@ -60,7 +60,7 @@ class SRResNet:
 
                 model.zero_grad()
                 batch_hat = model(batch_lr)
-                loss = mse(batch_hat, batch_hr)
+                loss = l1(batch_hr, batch_hat)
                 loss.backward()
                 optimizer.step()
 
@@ -101,7 +101,7 @@ class SRResNet:
     def save_train_data(self, train_losses, val_losses, model):
 
         # save model
-        torch.save(model.state_dict(), self.run_dir + '/srrestnet.pt')
+        torch.save(model.state_dict(), self.run_dir + '/edsr.pt')
 
         # save losses
         plt.figure(figsize=(10,5))
@@ -115,8 +115,9 @@ class SRResNet:
                 
     def generate(self, path):
         print("### Begin Single Image Super Resolution ###")
-        model = SRResNet(self.args)
-        model.load_state_dict(torch.load(path + "/srrestnet.pt"))
+        
+        model = EnhancedDeepResidualNetwork(self.args)
+        model.load_state_dict(torch.load(path + "/edsr.pt"))
         model.to(self.args.device)
         model.eval()
 
@@ -134,32 +135,24 @@ class SRResNet:
 
 ###############
 
-class SuperResolutionResidualNetwork(nn.Module):
-    def __init__(self, args, B = 16, F = 64):
-        super(SuperResolutionResidualNetwork, self).__init__()
+class EnhancedDeepResidualNetwork(nn.Module):
+    def __init__(self, args, B = 32, F = 256):
+        super(EnhancedDeepResidualNetwork, self).__init__()
         self.args = args
 
-        self.input_conv = nn.Sequential(
-            nn.Conv2d(args.channel_size, F, 9, 1, 4, bias=False),
-            nn.PReLU(init=0.2)
-        )
+        self.input_conv = nn.Conv2d(args.channel_size, F, 9, 1, 4, bias=False)
         
         self.residual = nn.Sequential(
             *[ResNetBlock(F) for _ in range(B)]
         )
 
-        self.mid_conv = nn.Sequential(
-            nn.Conv2d(F, F, 3, 1, 1, bias=False),
-            nn.BatchNorm2d(F)
-        )
+        self.mid_conv = nn.Conv2d(F, F, 3, 1, 1, bias=False)
 
         self.upsample4x = nn.Sequential(
             nn.Conv2d(F, F * 4, 3, 1, 1, bias=False),
             nn.PixelShuffle(2),
-            nn.PReLU(init=0.2),
             nn.Conv2d(F, F * 4, 3, 1, 1, bias=False),
             nn.PixelShuffle(2),
-            nn.PReLU(init=0.2),
         )
 
         self.output_conv = nn.Conv2d(F, args.channel_size, 9, 1, 4, bias=False)
@@ -171,23 +164,24 @@ class SuperResolutionResidualNetwork(nn.Module):
         x = self.mid_conv(x)
         x += res
         x = self.upsample4x(x)
-        x = self.output_conv(x)
         return x
     
 class ResNetBlock(nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, in_channels, scaling=0.1):
         super().__init__()
+
+        self.scaling = scaling
 
         self.model = nn.Sequential(
             nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False),
-            nn.BatchNorm2d(in_channels),
             nn.PReLU(init=0.2),
             nn.Conv2d(in_channels, in_channels, 3, 1, 1, bias=False),
-            nn.BatchNorm2d(in_channels),
         )
 
     def forward(self, x):
         res = x
-        return res + self.model(x)
+        h = self.model(x)
+        h += self.scaling * res
+        return h
     
 #########################
