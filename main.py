@@ -21,11 +21,15 @@ parser.add_argument('--seed', type=int, default=128, help='manual random seed')
 parser.add_argument('--batchsize', type=int, default=32, help='batch size')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate for training')
 
+### Model Flags
+
+parser.add_argument('--srrn', action='store_true', help='use SRResNet model')
+
 ### Dataset Flags
 
 parser.add_argument('--augment', type=str, default=None, help='augment dataset to input directory')
 
-## Test Flags
+### Test Flags
 
 parser.add_argument('--test', type=str, default=None, help='test model with weights from input path')
 
