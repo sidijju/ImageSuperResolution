@@ -8,6 +8,7 @@ from torchvision.io import read_image
 from torchvision.utils import save_image
 
 from models.edsr import EDSR
+from models.srresnet import SRResNet
 from dataset import *
 from utils import make_dir
 
@@ -15,12 +16,10 @@ parser = argparse.ArgumentParser()
 
 ### General Flags
 
-parser.add_argument('-n', '--n', type=int, default=5, help='number of training epochs')
+parser.add_argument('-n', '--n', type=int, default=100, help='number of training epochs')
 parser.add_argument('--seed', type=int, default=128, help='manual random seed')
 parser.add_argument('--batchsize', type=int, default=32, help='batch size')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate for training')
-
-#parser.add_argument('--latent', type=int, default=512, help='size of latent dimension')
 
 ### Dataset Flags
 
@@ -94,7 +93,10 @@ args.channel_size = len(dataset[0][0])
 
 ##### Model #####
 
-model = EDSR(args, dataset)
+if args.srrn:
+    model = SRResNet(args, dataset)
+else:
+    model = EDSR(args, dataset)
 
 if not args.test:
     model.train()
