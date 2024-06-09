@@ -39,10 +39,10 @@ class EDSR:
         l1 = nn.L1Loss()
         train_losses = []
 
-        iters = 1
+        iters = 0
         batch_overflow = self.args.n % len(self.train_loader)
         batch_remainder = len(self.train_loader) - batch_overflow if batch_overflow > 0 else 0
-        stop_iter = self.args.n + batch_remainder
+        stop_iter = self.args.n + batch_remainder - 1
 
         print("### Begin Training Procedure ###")
         with tqdm(total=stop_iter) as pbar:
@@ -60,10 +60,8 @@ class EDSR:
 
                     ####   Metrics Tracking  ####
 
-                    if iters % 100 == 0:
-                            
+                    if iters % 100 == 0: 
                         train_losses.append(loss.item())
-
                         print(f'[%d/%d]\tloss: %.4f'
                             % (iters, self.args.n, loss.item()))
 
