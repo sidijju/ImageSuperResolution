@@ -67,9 +67,7 @@ class EDSR:
                         print(f'[%d/%d]\tloss: %.4f'
                             % (iters, self.args.n, loss.item()))
 
-                    # if (i % 5e2 == 0) or (i == len(self.train_loader)-1):
-
-                    if (iters % 2 == 0):
+                    if (iters % 5e3 == 0) or (iters == len(self.train_loader)-1):
                         with torch.no_grad():
                             model.eval()
                             sample_hr_rec = model(sample_lr.to(self.args.device))
