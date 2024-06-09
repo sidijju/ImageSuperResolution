@@ -46,7 +46,7 @@ class EDSR:
 
         print("### Begin Training Procedure ###")
         for epoch in tqdm(range(self.args.n)):
-            for i, batch in enumerate(self.train_loader, 0):
+            for i, batch in enumerate(tqdm(self.train_loader, 0)):
                 batch_hr, batch_lr = batch
                 batch_hr = batch_hr.to(self.args.device)
                 batch_lr = batch_lr.to(self.args.device)                   
