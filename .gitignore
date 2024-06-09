@@ -2,3 +2,4 @@
 train
 .venv
 *.pyc
+*.tar.gz

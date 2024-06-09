@@ -17,9 +17,7 @@ class SRResNet:
         
         self.args = args
         
-        train, val = torch.utils.data.random_split(dataset, [.9, .1])
-        self.train_loader = DataLoader(train, batch_size=args.batchsize, shuffle=True)
-        self.val_loader = DataLoader(val, batch_size=args.batchsize, shuffle=True)
+        self.train_loader = DataLoader(dataset, batch_size=args.batchsize, shuffle=True)
 
         self.channel_size = args.channel_size
 
@@ -37,12 +35,11 @@ class SRResNet:
 
         mse = nn.MSELoss()
 
-        sample_hr, sample_lr = next(iter(self.val_loader))
+        sample_hr, sample_lr = next(iter(self.train_loader))
         plot_batch(sample_lr, self.progress_dir + f"x:0")
         plot_batch(sample_hr, self.progress_dir + f"y:0")
 
         train_losses = []
-        val_losses = []
         iters = 0
 
         print("### Begin Training Procedure ###")
@@ -63,24 +60,10 @@ class SRResNet:
                 #############################
 
                 if i % 100 == 0:
-                    model.eval()
-                    val_loss = 0
-                    for val_batch in self.val_loader:
-                        val_batch_y, val_batch_x = val_batch
-                        val_batch_x = val_batch_x.to(self.args.device)
-                        val_batch_y = val_batch_y.to(self.args.device)
-                        
-                        val_batch_yhat = model(val_batch_x)
-                        val_loss += mse(val_batch_y, val_batch_yhat)
-                    val_loss /= len(self.val_loader)
-                    model.train()
-                        
-                    val_losses.append(val_loss.item())
                     train_losses.append(loss.item())
 
-                    print(f'[%d/%d][%d/%d]\tloss: %.4f\tval_loss: %.4f'
-                        % (epoch, self.args.n, i, len(self.train_loader),
-                            loss.item(), val_loss.item()))
+                    print(f'[%d/%d][%d/%d]\tloss: %.4f'
+                        % (epoch, self.args.n, i, len(self.train_loader), loss.item()))
 
                 if (iters % 5000 == 0) or ((epoch == self.args.n-1) and (i == len(self.train_loader)-1)):
 
@@ -91,9 +74,9 @@ class SRResNet:
                 iters += 1
 
         print("### End Training Procedure ###")
-        self.save_train_data(train_losses, val_losses, model)
+        self.save_train_data(train_losses, model)
 
-    def save_train_data(self, train_losses, val_losses, model):
+    def save_train_data(self, train_losses, model):
 
         # save model
         torch.save(model.state_dict(), self.run_dir + '/sr_resnet.pt')
@@ -102,7 +85,6 @@ class SRResNet:
         plt.figure(figsize=(10,5))
         plt.title("Model Loss")
         plt.plot(train_losses,label="train")
-        plt.plot(val_losses,label="val")
         plt.xlabel("Iterations")
         plt.ylabel("Loss")
         plt.legend()
