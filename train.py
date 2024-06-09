@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser()
 
 ### General Flags
 
-parser.add_argument('-n', '--n', type=int, default=1e6, help='number of training steps')
+parser.add_argument('-n', '--n', type=int, default=1e5, help='number of training steps')
 parser.add_argument('--seed', type=int, default=128, help='manual random seed')
 parser.add_argument('--batchsize', type=int, default=16, help='batch size')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate for training')

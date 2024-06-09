@@ -75,7 +75,7 @@ class EDSR:
                         plot_compare_batch(sample_hr, sample_lr, sample_hr_rec, self.progress_dir + f"comp:{iters}")
 
                     #### Update Counters ####
-                    if iters % 2e5 == 0:
+                    if iters % 2e4 == 0:
                         scheduler.step()
                     iters += 1
                     pbar.update(1)
