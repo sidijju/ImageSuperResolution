@@ -1,6 +1,6 @@
 import os
 import torch
-import torch.nn
+import torch.nn as nn
 import glob
 import matplotlib.pyplot as plt
 import torchvision.utils as vutils

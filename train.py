@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('-n', '--n', type=int, default=100, help='number of training epochs')
 parser.add_argument('--seed', type=int, default=128, help='manual random seed')
-parser.add_argument('--batchsize', type=int, default=32, help='batch size')
+parser.add_argument('--batchsize', type=int, default=16, help='batch size')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate for training')
 
 ### Model Flags
@@ -28,17 +28,12 @@ parser.add_argument('--srrn', action='store_true', help='use SRResNet model')
 ### Dataset Flags
 
 parser.add_argument('--augment', type=str, default=None, help='augment dataset to input directory')
-
-### Test Flags
-
-parser.add_argument('--test', type=str, default=None, help='test model with weights from input path')
-
 args = parser.parse_args()
 
-if not args.test:
-    random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    torch.use_deterministic_algorithms(True)
+# set training mode to be deterministic
+random.seed(args.seed)
+torch.manual_seed(args.seed)
+torch.use_deterministic_algorithms(True)
 
 if torch.cuda.is_available():
     print("Using cuda")
@@ -63,31 +58,26 @@ if args.augment:
 
     print("### Augmenting Dataset ###")
     counter = 0
-    new_counter = 0
     for f in glob.glob("jap-art/*/*.jpg"):
         counter += 1
         img = to_float32(read_image(f).to(args.device))
         dir_name = f.split('/')[-2]
         img_name = f.split('/')[-1][:-4]
         store_location = args.augment + dir_name + "/" + img_name
-        if not os.path.exists(args.augment + dir_name):
-            os.makedirs(args.augment + dir_name)
+        make_dir(args.augment + dir_name)
         save_image(img, store_location + ".jpg")
 
         augment_transforms = [
             v2.RandomHorizontalFlip(p=1.0),
-            v2.RandomRotation(30, fill=1),
-            v2.RandomResizedCrop(720),
-            v2.RandomPerspective(distortion_scale = 0.25, p=1.0, fill=1.0),
+            v2.RandomRotation(90, fill=1),
         ]
 
         for i, transform in enumerate(augment_transforms):
-            new_counter += 1
             aug_img = transform(img)
             save_image(aug_img, store_location + f"_aug{i}.jpg")
 
     print(f"Original Dataset Size: {counter}")
-    print(f"Augmented Dataset Size: {counter + new_counter}")
+    print(f"Augmented Dataset Size: {counter * (len(augment_transforms) + 1)}")
     print("#########################")
 
 dataset = JapArtDataset(args)
@@ -102,8 +92,4 @@ if args.srrn:
 else:
     model = EDSR(args, dataset)
 
-if not args.test:
-    model.train()
-    model.generate(model.run_dir)
-else:
-    model.generate(args.test)
+model.train()

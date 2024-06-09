@@ -10,18 +10,17 @@ Collection of experiments in Single Image Super Resolution
 
 ## Implemented Models
 
-'default' [Enhanced Deep Residual Networks](https://openaccess.thecvf.com/content_cvpr_2017_workshops/w12/papers/Lim_Enhanced_Deep_Residual_CVPR_2017_paper.pdf)
+[Enhanced Deep Residual Networks](https://openaccess.thecvf.com/content_cvpr_2017_workshops/w12/papers/Lim_Enhanced_Deep_Residual_CVPR_2017_paper.pdf)
 
-'--srrn' [Super Resolution Residual Network](https://arxiv.org/pdf/1609.04802)
+[Super Resolution Residual Network](https://arxiv.org/pdf/1609.04802)
 
 ## Usage
 
-To run the training mechanism with default settings run `python main.py`
+To run the training mechanism with default settings run `python train.py`
 
-To run the model in test mode, use the `--test` flag 
-and specify the directory with pretrained weights and input (low resolution) images
+For testing, run `python test.py` and pass in the path to pretrained model weights and the input image directory
 
-### General Flags
+### Train Flags
 
 `-n, --n` - number of training epochs
 
@@ -29,12 +28,14 @@ and specify the directory with pretrained weights and input (low resolution) ima
 
 `--batchsize` - batch size
 
-'--lr' - learning rate for training
-
-### Dataset Flags
+`--lr` - learning rate for training
 
 `--augment` - run auto-augmentation on input dataset and store in input directory
 
+`--srrn` - train Super Resolution Residual Network (default is EDSR)
+
 ### Test Flags
 
-`--test` - set testing mode to true and generate images with selected model and path to folder with pretrained model weights and input images
+`--model` - path to pretrained model weights
+
+`--images` - path to input image folder

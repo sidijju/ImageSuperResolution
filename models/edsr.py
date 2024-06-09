@@ -4,9 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from datetime import datetime
-
 from utils import *
-from dataset import TestDataset
 
 ##### EDSR #####
 
@@ -25,23 +23,19 @@ class EDSR:
 
         self.channel_size = args.channel_size
 
-        if not self.args.test:
-            self.run_dir = "train/edsr-" + datetime.now().strftime("%Y-%m-%d(%H:%M:%S)" + "/")
-            self.progress_dir = self.run_dir + "progress/"
-            make_dir(self.run_dir)
-            make_dir(self.progress_dir)
+        self.run_dir = "train/edsr-" + datetime.now().strftime("%Y-%m-%d(%H:%M:%S)" + "/")
+        self.progress_dir = self.run_dir + "progress/"
+        make_dir(self.run_dir)
+        make_dir(self.progress_dir)
         
     def train(self):
 
-        if not self.train_loader:
-            return
-        
         model = EnhancedDeepResidualNetwork(self.args)
         model.apply(weights_init)
         model.to(self.args.device)
         optimizer = optim.Adam(model.parameters(), lr=self.args.lr, betas=(0.9, 0.999))
 
-        sample_lr, sample_hr = next(iter(self.val_loader))
+        sample_hr, sample_lr = next(iter(self.val_loader))
         plot_batch(sample_lr, self.progress_dir + f"x:0")
         plot_batch(sample_hr, self.progress_dir + f"y:0")
 
@@ -56,7 +50,7 @@ class EDSR:
             for i, batch in enumerate(self.train_loader, 0):
                 batch_hr, batch_lr = batch
                 batch_hr = batch_hr.to(self.args.device)
-                batch_lr = batch_lr.to(self.args.device)                    
+                batch_lr = batch_lr.to(self.args.device)                   
 
                 model.zero_grad()
                 batch_hat = model(batch_lr)
@@ -72,11 +66,12 @@ class EDSR:
                     model.eval()
                     val_loss = 0
                     for val_batch in self.val_loader:
-                        val_batch_x, val_batch_y = val_batch
+                        val_batch_y, val_batch_x = val_batch
+                        val_batch_x = val_batch_x.to(self.args.device)
+                        val_batch_y = val_batch_y.to(self.args.device)
                         
                         val_batch_yhat = model(val_batch_x)
-                        loss = self.compute_loss(val_batch_y, val_batch_yhat)
-                        val_loss += loss
+                        val_loss += l1(val_batch_y, val_batch_yhat)
                     val_loss /= len(self.val_loader)
                     model.train()
                         
@@ -84,10 +79,10 @@ class EDSR:
                     train_losses.append(loss.item())
 
                     print(f'[%d/%d][%d/%d]\tloss: %.4f\tval_loss: %.4f'
-                        % (epoch, self.args.n, i, len(self.dataloader),
-                            loss.item(), loss.item()))
+                        % (epoch, self.args.n, i, len(self.train_loader),
+                            loss.item(), val_loss.item()))
 
-                if (iters % 5000 == 0) or ((epoch == self.args.n-1) and (i == len(self.dataloader)-1)):
+                if (iters % 5000 == 0) or ((epoch == self.args.n-1) and (i == len(self.train_loader)-1)):
 
                     with torch.no_grad():
                         batch_yhat = model(sample_lr).detach().cpu()
@@ -112,26 +107,6 @@ class EDSR:
         plt.ylabel("Loss")
         plt.legend()
         plt.savefig(self.run_dir + "train_losses")
-                
-    def generate(self, path):
-        print("### Begin Single Image Super Resolution ###")
-        
-        model = EnhancedDeepResidualNetwork(self.args)
-        model.load_state_dict(torch.load(path + "/edsr.pt"))
-        model.to(self.args.device)
-        model.eval()
-
-        img_names = find_images_in_directory(path)
-        test_dataset = TestDataset(self.args, img_names)
-        test_loader = DataLoader(test_dataset, batch_size=self.args.batchsize, shuffle=False)
-
-        for i, batch in enumerate(test_loader, 0):
-            batch = batch.to(self.args.device)
-            batch_rec = model(batch)
-
-            plot_batch(batch, path + f"/x_{i}")
-            plot_image(batch_rec, path + f"/yhat_{i}")
-        print("### End Single Image Super Resolution ###")
 
 ###############
 
@@ -164,6 +139,7 @@ class EnhancedDeepResidualNetwork(nn.Module):
         x = self.mid_conv(x)
         x += res
         x = self.upsample4x(x)
+        x = self.output_conv(x)
         return x
     
 class ResNetBlock(nn.Module):
