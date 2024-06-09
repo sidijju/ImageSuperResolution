@@ -32,6 +32,7 @@ class EDSR:
         model.apply(weights_init)
         model.to(self.args.device)
         optimizer = optim.Adam(model.parameters(), lr=self.args.lr, betas=(0.9, 0.999))
+        scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer, lr_lambda=lambda _: 0.5)
 
         sample_hr, sample_lr = next(iter(self.train_loader))
         sample_hr = sample_hr.to(self.args.device)
@@ -75,6 +76,7 @@ class EDSR:
                     plot_batch(batch_yhat, self.progress_dir + f"yhat:{iters}")
 
                 iters += 1
+            scheduler.step()
 
         print("### End Training Procedure ###")
         self.save_train_data(train_losses, model)
