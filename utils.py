@@ -40,7 +40,7 @@ def plot_compare_batch(batch_hr, batch_lr, batch_hr_rec, path):
     batch_lr = bicubic_upsample(batch_lr)
     for i in range(5):
         grid_images += batch_hr[i].cpu(), batch_lr[i].cpu(), batch_hr_rec[i].cpu()
-    grid = vutils.make_grid(grid_images, 5, padding=2, normalize=True)
+    grid = vutils.make_grid(grid_images, nrow=3, padding=2, normalize=True)
     plt.axis('off')
     plt.imshow(grid.permute(1, 2, 0))
     plt.savefig(path)
