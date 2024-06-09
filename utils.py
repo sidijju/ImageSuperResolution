@@ -36,7 +36,7 @@ def plot_batch(batch, path):
 def plot_compare_batch(batch_hr, batch_lr, batch_hr_rec, path):
     plt.cla()
     grid_images = []
-    bicubic_upsample = transforms.v2.Resize(batch_hr.shape[1], interpolation = transforms.InterpolationMode.BICUBIC)
+    bicubic_upsample = transforms.v2.Resize(batch_hr.shape[-1], interpolation = transforms.InterpolationMode.BICUBIC)
     batch_lr = bicubic_upsample(batch_lr)
     for i in range(5):
         grid_images += batch_hr[i], batch_lr[i], batch_hr_rec[i]
