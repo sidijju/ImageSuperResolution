@@ -32,6 +32,16 @@ def plot_batch(batch, path):
     plt.imshow(grid.permute(1, 2, 0))
     plt.savefig(path)
 
+def plot_compare_batch(batch_hr, batch_lr, batch_hr_rec, path):
+    plt.cla()
+    grid_images = []
+    for i in range(5):
+        grid_images += batch_hr[i], batch_lr[i], batch_hr_rec[i]
+    grid = vutils.make_grid(grid_images, 5, padding=2, normalize=True)
+    plt.axis('off')
+    plt.imshow(grid.permute(1, 2, 0))
+    plt.savefig(path)
+
 # utility function to iterate through model
 # and initalize weights in layers rom N(0, 0.02)
 def weights_init(model):

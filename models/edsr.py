@@ -37,8 +37,9 @@ class EDSR:
         sample_hr, sample_lr = next(iter(self.train_loader))
         sample_hr = sample_hr.to(self.args.device)
         sample_lr = sample_lr.to(self.args.device)
-        plot_batch(sample_lr, self.progress_dir + f"x:0")
-        plot_batch(sample_hr, self.progress_dir + f"y:0")
+        sample_hr_rec = model(sample_lr)
+        plot_compare_batch(sample_hr, sample_lr, sample_hr_rec, f"comp:0")
+        del sample_hr_rec
 
         l1 = nn.L1Loss()
 
@@ -73,7 +74,7 @@ class EDSR:
 
                     with torch.no_grad():
                         batch_yhat = model(sample_lr).detach().cpu()
-                    plot_batch(batch_yhat, self.progress_dir + f"yhat:{iters}")
+                    plot_compare_batch(sample_hr, sample_lr, batch_yhat, f"comp:{iters}")
 
                 iters += 1
             scheduler.step()
