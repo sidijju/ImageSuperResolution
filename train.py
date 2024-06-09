@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser()
 
 ### General Flags
 
-parser.add_argument('-n', '--n', type=int, default=100, help='number of training epochs')
+parser.add_argument('-n', '--n', type=int, default=1e6, help='number of training steps')
 parser.add_argument('--seed', type=int, default=128, help='manual random seed')
 parser.add_argument('--batchsize', type=int, default=16, help='batch size')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate for training')
@@ -38,9 +38,9 @@ torch.use_deterministic_algorithms(True)
 if torch.cuda.is_available():
     print("Using cuda")
     args.device = torch.device("cuda:0")
-elif torch.backends.mps.is_available():
-    print("Using mps")
-    args.device = torch.device("mps")
+# elif torch.backends.mps.is_available():
+#     print("Using mps")
+#     args.device = torch.device("mps")
 else: 
     print("Using cpu")
     args.device = torch.device("cpu")

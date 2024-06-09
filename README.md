@@ -22,7 +22,7 @@ For testing, run `python test.py` and pass in the path to pretrained model weigh
 
 ### Train Flags
 
-`-n, --n` - number of training epochs
+`-n, --n` - number of training steps (gradient updates)
 
 `--seed` - manual random seed
 
