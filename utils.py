@@ -4,6 +4,7 @@ import torch.nn as nn
 import glob
 import matplotlib.pyplot as plt
 import torchvision.utils as vutils
+import torchvision.transforms as transforms
 
 def make_dir(path):
     if not os.path.exists(path):
@@ -35,6 +36,8 @@ def plot_batch(batch, path):
 def plot_compare_batch(batch_hr, batch_lr, batch_hr_rec, path):
     plt.cla()
     grid_images = []
+    bicubic_upsample = transforms.v2.Resize(batch_hr.shape[1], interpolation = transforms.InterpolationMode.BICUBIC)
+    batch_lr = bicubic_upsample(batch_lr)
     for i in range(5):
         grid_images += batch_hr[i], batch_lr[i], batch_hr_rec[i]
     grid = vutils.make_grid(grid_images, 5, padding=2, normalize=True)
