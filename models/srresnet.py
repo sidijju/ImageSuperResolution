@@ -36,6 +36,8 @@ class SRResNet:
         mse = nn.MSELoss()
 
         sample_hr, sample_lr = next(iter(self.train_loader))
+        sample_hr = sample_hr.to(self.args.device)
+        sample_lr = sample_lr.to(self.args.device)
         plot_batch(sample_lr, self.progress_dir + f"x:0")
         plot_batch(sample_hr, self.progress_dir + f"y:0")
 
