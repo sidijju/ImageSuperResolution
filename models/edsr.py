@@ -69,10 +69,9 @@ class EDSR:
                         with torch.no_grad():
                             model.eval()
                             sample_hr_rec = model(sample_lr.to(self.args.device))
-                            sample_hr_rec = sample_hr_rec.detach().cpu()
-                            sample_lr = sample_lr.cpu()
+                            sample_hr_rec = sample_hr_rec.detach()
+                            plot_compare_batch(sample_hr, sample_lr, sample_hr_rec, self.progress_dir + f"comp:{iters}")
                             model.train()
-                        plot_compare_batch(sample_hr, sample_lr, sample_hr_rec, self.progress_dir + f"comp:{iters}")
 
                     #### Update Counters ####
                     if iters % 2e4 == 0:
